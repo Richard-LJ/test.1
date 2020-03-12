@@ -1,0 +1,139 @@
+import pygame, sys, random, time
+from pygame.locals import *\
+# pygame初始化
+pygame.init()
+fpsClock=pygame.time.Clock()
+
+# 初始化窗口大小
+playSurface=pygame.display.set_mode((640, 480))
+# 初始化标题
+pygame.display.set_caption("贪吃蛇")
+# 定义颜色
+RED = pygame.Color(255, 0, 0)
+BLACK = pygame.Color(0,0,0)
+WHITE = pygame.Color(255, 255, 255)
+GREY = pygame.Color(120,120,120)
+LIGHT = pygame.Color(220, 220, 220)
+# 定义游戏结束的函数
+def gameover(playSurface, score):
+    # 创建字体的样式及大小
+    gameover_font = pygame.font.SysFont('arial.ttf', 72)
+
+    # 游戏结束显示game over,绘制文本颜色
+    gameover_surf = gameover_font.render('Game Over', True, GREY)
+
+    # 设置文本位置
+    gameover_rect = gameover_surf.get_rect()
+    gameover_rect.midtop = (320, 125)
+
+    # 更新文本的显示
+    playSurface.blit(gameover_surf, gameover_rect)
+
+    # 游戏结束显示分数SCORE
+    score_font = pygame.font.SysFont('arial.ttf', 48)
+
+    # 设置分数文本的颜色及其内容
+    score_surf = score_font.render('SCORE:'+ str(score), True, GREY)
+
+    # 设置分数显示的位置
+    score_rect = score_surf.get_rect()
+    score_rect.midtop = (320, 225)
+   
+
+    # 刷新画面
+    playSurface.blit(score_surf, score_rect)
+    pygame.display.flip()
+    time.sleep(5)
+    pygame.quit()
+    sys.exit()
+
+snakePosition = [100, 100]
+
+snakeSegments = [[100, 100], [80, 100],[60, 100]]
+
+foodPosition = [300, 300]
+
+food_number = 1
+dir = 'right'
+changeDir = dir
+
+score = 0
+
+while True:
+    # 从列表中获取事件
+    for event in pygame.event.get():
+        # 窗口关闭
+        if event.type == QUIT:
+            pygame.quit()
+            sys.exit()
+        elif event.type == KEYDOWN:
+            if event.key == K_RIGHT:
+                changeDir = 'right'
+            if event.key == K_LEFT:
+                changeDir = 'left'
+            if event.key == K_UP:
+                changeDir = 'up'
+            if event.key == K_DOWN:
+                changeDir = 'down'
+            if event.key == K_ESCAPE:
+                pygame.event.post(pygame.event.Event(QUIT))
+
+    if changeDir == 'right' and not dir == 'left':
+        dir = changeDir
+    if changeDir == 'left' and not dir == 'right':
+        dir = changeDir
+    if changeDir == 'up' and not dir == 'down':
+        dir = changeDir
+    if changeDir == 'down' and not dir == 'up':
+        dir = changeDir
+
+    # 设置贪吃蛇移动规则
+    if dir == 'right':
+        snakePosition[0] += 20
+    if dir == 'left':
+        snakePosition[0] -= 20
+    if dir == 'down':
+        snakePosition[1] += 20
+    if dir == 'up':
+        snakePosition[1] -= 20
+
+    # 设置贪吃蛇吃完后加长
+    snakeSegments.insert(0,list(snakePosition))
+
+    # 贪吃蛇吃完后食物消失
+    if snakePosition[0] == foodPosition[0] and snakePosition[1] == foodPosition[1]:
+        food_number = 0
+    else:
+        snakeSegments.pop()
+    if food_number == 0:
+        x =random.randint(1,31)
+        y = random.randint(1,23)
+        foodPosition = [int(x * 20), int(y * 20)]
+        food_number = 1
+        score += 1
+    # 填充背景
+    playSurface.fill(BLACK)
+
+    # 将贪吃蛇从屏幕上画出来
+    for position in snakeSegments[1:]:
+
+        pygame.draw.rect(playSurface, WHITE, Rect(position[0], position[1],20,20))
+
+        pygame.draw.rect(playSurface,LIGHT,Rect(snakePosition[0],snakePosition[1],20,20))
+
+        pygame.draw.rect(playSurface,RED,Rect(foodPosition[0],foodPosition[1],20,20))
+
+        # 设置游戏速度
+        fpsClock.tick(20)
+        pygame.display.flip()
+
+        # 设置游戏结束的场景
+        if snakePosition[0] > 620 or snakePosition[0] < 0:
+            gameover(playSurface, score)
+        if snakePosition[1] > 460 or snakePosition[1] < 0:
+            gameover(playSurface, score)
+
+        for snakeBody in snakeSegments[1:]:
+            if snakePosition[0] == snakeBody[0] and snakePosition[1] == snakeBody[1]:
+                gameover(playSurface, score)
+    
